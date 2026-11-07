@@ -44,6 +44,13 @@ def vibe_home():
   return Path(configured).expanduser() if configured else Path.home() / ".vibe"
 
 
+def dotenv_value(value):
+  """A .env value as Vibe's dotenv reads it: without its quotes or a trailing comment."""
+  value = value.strip()
+  closing = value.find(value[0], 1) if value[:1] in ("'", '"') else -1
+  return value[1:closing] if closing > 0 else re.split(r"\s+#", value, maxsplit=1)[0].strip()
+
+
 def api_key():
   """The key Vibe would use: the environment first, then Vibe's .env."""
   key = os.environ.get(KEY_NAME, "").strip()
@@ -54,9 +61,9 @@ def api_key():
   except (OSError, UnicodeDecodeError):
     return ""
   for line in lines:
-    name, _, value = line.removeprefix("export ").partition("=")
+    name, _, value = line.strip().removeprefix("export ").partition("=")
     if name.strip() == KEY_NAME:
-      return value.strip().strip("'\"")
+      return dotenv_value(value)
   return ""
 
 

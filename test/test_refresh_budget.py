@@ -30,6 +30,16 @@ def build(vibe_pool, api_pool=None, subscription=None):
   return plugin.build_patch(budget, subscription, 1)
 
 
+class DotenvValue(unittest.TestCase):
+  def test_quotes_and_trailing_comments_are_dropped(self):
+    for raw in ("fake-key", " fake-key ", "fake-key # personal key", "'fake-key' # personal key", '"fake-key"'):
+      with self.subTest(raw):
+        self.assertEqual(plugin.dotenv_value(raw), "fake-key")
+
+  def test_a_hash_inside_a_key_is_kept(self):
+    self.assertEqual(plugin.dotenv_value("fake#key"), "fake#key")
+
+
 class BuildPatch(unittest.TestCase):
   def test_both_pools_get_labelled_meters(self):
     limits = build(vibe(), api(), PAYG_ON)["limits"]
